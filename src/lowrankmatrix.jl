@@ -133,7 +133,19 @@ end
 getindex(L::LowRankMatrix, i::Int, jr::AbstractRange) = transpose(eltype(L)[L[i,j] for j=jr])
 getindex(L::LowRankMatrix, ir::AbstractRange, j::Int) = eltype(L)[L[i,j] for i=ir]
 getindex(L::LowRankMatrix, ir::AbstractRange, jr::AbstractRange) = eltype(L)[L[i,j] for i=ir,j=jr]
+# getindex(L::LowRankMatrix, ir::AbstractRange, jr::AbstractRange) = LowRankMatrix(L.U[ir,:], L.V[jr,:]) # this would improve things for situations where a submatrix needs to be extracted in LR form
 Matrix(L::LowRankMatrix) = L[1:size(L,1),1:size(L,2)]
+
+# additional definitions for setting indices
+function setindex!(L::LowRankMatrix{T}, _M::LowRankMatrix, I, J) where T
+    k = rank(_M)
+    k ≤ rank(L) || throw(BoundsError("rank of M must be smaller than the rank of L. Expected $(rank(L)), got $(k)."))
+    length(I) == size(_M, 1) || throw(DimensionMismatch("I has length $(length(I)) but M has dimensions $(size(_M))"))
+    length(J) == size(_M, 2) || throw(DimensionMismatch("J has length $(length(J)) but M has dimensions $(size(_M))"))
+    M = convert(LowRankMatrix{T}, _M)
+    L.U[I, 1:k] = M.U; L.U[I, k+1:end] .= 0
+    L.V[J, 1:k] = M.V; L.V[J, k+1:end] .= 0
+end
 
 # constructors
 

@@ -6,19 +6,21 @@ const AbstractLinOp = AbstractLinearOperator
 const AbstractMatOrLinOp{T} = Union{AbstractMatrix{T}, AbstractLinOp{T}}
 
 
-mutable struct LinearOperator{T} <: AbstractLinOp{T}
+mutable struct LinearOperator{T, Tmul<:Function, Tmulc<:Function} <: AbstractLinOp{T}
   m::Int
   n::Int
-  mul!::Function
-  mulc!::Function
+  mul!::Tmul
+  mulc!::Tmulc
   _tmp::Nullable{Array{T}}
+  LinearOperator{T}(m, n, mul!, mulc!, _tmp) where T = new{T, typeof(mul!), typeof(mulc!)}(m, n, mul!, mulc!, _tmp)
 end
 const LinOp = LinearOperator
 
-mutable struct HermitianLinearOperator{T} <: AbstractLinOp{T}
+mutable struct HermitianLinearOperator{T, Tmul<:Function} <: AbstractLinOp{T}
   n::Int
-  mul!::Function
+  mul!::Tmul
   _tmp::Nullable{Array{T}}
+  HermitianLinearOperator{T}(m, n, mul!, _tmp) where T = new{T, typeof(mul!)}(m, n, mul!, _tmp)
 end
 const HermLinOp = HermitianLinearOperator
 
